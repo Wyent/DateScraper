@@ -1,11 +1,24 @@
 from fastapi import FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
 from Scraper import Scraper
 
 
 app = FastAPI()  # create app instance
 dates = Scraper()
 
+# allowed domains
+origins = [
+    "https://vast-reaches-22877.herokuapp.com",
+    "http://localhost",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],  # allowing all headers
+)
 
 # define route, use / for landing page
 @app.get("/")  # get operator decorator
