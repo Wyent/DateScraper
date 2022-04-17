@@ -154,7 +154,7 @@ class Scraper:
 
                 result_count += 1
 
-                if result_count == 2:
+                if result_count == 5:
                     break
 
             except Exception as e:
@@ -171,11 +171,11 @@ class Scraper:
             'dates': dates
         }
         date_collection = date_header | dates_dict
-        json_date_collection = json.dumps(date_collection, indent=4)
+        json_date_collection = json.dumps(date_collection)
         print(json_date_collection)
         print('Number of results: ', result_count)
 
-        # self.upsert_mongo('dates', date_header, dates_dict)
+        self.upsert_mongo('dates', date_header, dates_dict)
         return date_collection
 
         '''client = pymongo.MongoClient(<CONNECTION STRING>)
