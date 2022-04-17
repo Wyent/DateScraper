@@ -8,8 +8,8 @@ dates = Scraper()
 
 # allowed domains
 origins = [
-    "https://vast-reaches-22877.herokuapp.com",
-    # "http://localhost",
+    # "https://vast-reaches-22877.herokuapp.com",
+    "http://localhost",
 ]
 
 app.add_middleware(
