@@ -1,3 +1,6 @@
+chromedriver.exe
+geckodriver.exe
+geckodriver.log
 
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,windows,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm,windows,python
