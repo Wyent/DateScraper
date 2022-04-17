@@ -44,11 +44,93 @@ class Scraper:
         return driver
 
     @staticmethod
-    def get_reverse_geocode(latitude, longitude):
+    def get_state_abrev(state):
+        us_state_to_abbrev = {
+            "Alabama": "AL",
+            "Alaska": "AK",
+            "Arizona": "AZ",
+            "Arkansas": "AR",
+            "California": "CA",
+            "Colorado": "CO",
+            "Connecticut": "CT",
+            "Delaware": "DE",
+            "Florida": "FL",
+            "Georgia": "GA",
+            "Hawaii": "HI",
+            "Idaho": "ID",
+            "Illinois": "IL",
+            "Indiana": "IN",
+            "Iowa": "IA",
+            "Kansas": "KS",
+            "Kentucky": "KY",
+            "Louisiana": "LA",
+            "Maine": "ME",
+            "Maryland": "MD",
+            "Massachusetts": "MA",
+            "Michigan": "MI",
+            "Minnesota": "MN",
+            "Mississippi": "MS",
+            "Missouri": "MO",
+            "Montana": "MT",
+            "Nebraska": "NE",
+            "Nevada": "NV",
+            "New Hampshire": "NH",
+            "New Jersey": "NJ",
+            "New Mexico": "NM",
+            "New York": "NY",
+            "North Carolina": "NC",
+            "North Dakota": "ND",
+            "Ohio": "OH",
+            "Oklahoma": "OK",
+            "Oregon": "OR",
+            "Pennsylvania": "PA",
+            "Rhode Island": "RI",
+            "South Carolina": "SC",
+            "South Dakota": "SD",
+            "Tennessee": "TN",
+            "Texas": "TX",
+            "Utah": "UT",
+            "Vermont": "VT",
+            "Virginia": "VA",
+            "Washington": "WA",
+            "West Virginia": "WV",
+            "Wisconsin": "WI",
+            "Wyoming": "WY",
+            "District of Columbia": "DC",
+            "American Samoa": "AS",
+            "Guam": "GU",
+            "Northern Mariana Islands": "MP",
+            "Puerto Rico": "PR",
+            "United States Minor Outlying Islands": "UM",
+            "U.S. Virgin Islands": "VI",
+        }
+        return us_state_to_abbrev.get(state)
+
+    @staticmethod
+    def get_reverse_geocode(latitude, longitude, state_abrev=False, country_abrev=False):
         g = geocoder.osm([latitude, longitude], method='reverse')
         print(json.dumps(g.json, indent=4))
+        city = g.city
+        state = g.state
+        country = g.country
+        if state_abrev:
+            state = Scraper.get_state_abrev(g.state)
+        if country_abrev:
+            country = g.country_code
 
-        return g.json['city'], g.json['state'], g.json['country_code']
+        return city, state, country
+
+    def get_dates_tripbuzz(self, latitude, longitude):
+        try:
+            city, state, country = self.get_reverse_geocode(latitude, longitude)
+        except Exception as e:
+            raise e
+
+        location_string = city + '-' + state
+        location_string.replace(" ", "-")
+        html_query = 'https://www.meetup.com/find/?location='
+        html_query2 = '&source=EVENTS'
+        url = html_query + location_string + html_query2
 
     def get_dates_meetup(self, latitude, longitude):
         import time
@@ -67,7 +149,7 @@ class Scraper:
 
         # get geocode from lat, long
         try:
-            city, state, country = self.get_reverse_geocode(latitude, longitude)
+            city, state, country = self.get_reverse_geocode(latitude=latitude, longitude=longitude, country_abrev=True)
         except Exception as e:
             print(e)
             sys.exit()
