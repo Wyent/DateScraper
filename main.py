@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from Scraper import Scraper
 
-
 app = FastAPI()  # create app instance
 dates = Scraper()
 
@@ -20,6 +19,7 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=[]
 )
+
 
 # define route, use / for landing page
 @app.get("/")  # get operator decorator
