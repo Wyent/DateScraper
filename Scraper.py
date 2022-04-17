@@ -10,7 +10,8 @@ import geocoder
 
 class Scraper:
 
-    def upsert_mongo(self, collection, search_key, insert_data):
+    @staticmethod
+    def upsert_mongo(collection, search_key, insert_data):
         connect_str = 'mongodb+srv://takemeout:takemeout@takemeout.7kosh.mongodb.net/userTable?retryWrites=true&w=majority'
         cluster = MongoClient(connect_str)
         db = cluster["userTable"]
@@ -23,7 +24,8 @@ class Scraper:
         for result in results:
             print(result)
 
-    def create_headless_firefox_browser(self):
+    @staticmethod
+    def create_headless_firefox_browser():
         # firefox_options = webdriver.FirefoxOptions()
         # firefox_options.add_argument('--headless')
         # driver = webdriver.Firefox(options=firefox_options)
@@ -41,7 +43,8 @@ class Scraper:
 
         return driver
 
-    def get_reverse_geocode(self, latitude, longitude):
+    @staticmethod
+    def get_reverse_geocode(latitude, longitude):
         g = geocoder.osm([latitude, longitude], method='reverse')
         print(json.dumps(g.json, indent=4))
 
@@ -140,8 +143,8 @@ class Scraper:
 
                 # details
                 details = []
-                datePage = requests.get(date_url, headers=headers)
-                soup = BeautifulSoup(datePage.content, 'lxml')
+                date_page = requests.get(date_url, headers=headers)
+                soup = BeautifulSoup(date_page.content, 'lxml')
                 for text in soup.select('.break-words'):
                     try:
                         for paragraph in text.select('.mb-4'):
