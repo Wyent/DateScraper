@@ -9,7 +9,8 @@ dates = Scraper()
 # allowed domains
 origins = [
     # "https://vast-reaches-22877.herokuapp.com",
-    "http://localhost",
+    # "http://localhost:3000"
+    "http://google.com"
 ]
 
 app.add_middleware(
@@ -17,7 +18,7 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=False,
     allow_methods=["GET"],
-    allow_headers=["*"],  # allowing all headers
+    allow_headers=[]
 )
 
 # define route, use / for landing page
@@ -25,4 +26,3 @@ app.add_middleware(
 async def read_item(lat: float, lon: float):
     # return python dictionary, auto converted to json
     return dates.get_dates_meetup(lat, lon)
-
