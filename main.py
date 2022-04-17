@@ -9,7 +9,7 @@ dates = Scraper()
 # allowed domains
 origins = [
     "https://vast-reaches-22877.herokuapp.com",
-    "http://localhost",
+    # "http://localhost",
 ]
 
 app.add_middleware(
