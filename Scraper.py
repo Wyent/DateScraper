@@ -6,6 +6,7 @@ from selenium import webdriver
 import requests
 import json
 import geocoder
+from fastapi import HTTPException
 
 
 class Scraper:
@@ -142,6 +143,7 @@ class Scraper:
         except Exception as e:
             raise e
 
+        print(city, state, country)
         location_string = city + '-' + state
         location_string.replace(" ", "-")
         domain = 'https://www.tripbuzz.com'
@@ -157,7 +159,12 @@ class Scraper:
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) '
                               'Version/9.0.2 Safari/601.3.9'}
 
-            r = requests.get(url, headers=headers)
+            try:
+                r = requests.get(url, headers=headers, timeout=3)
+            except requests.exceptions.ConnectTimeout as e:
+                print(e)
+                raise HTTPException(status_code=504,
+                                    detail='Request timeout')
             soup = BeautifulSoup(r.content, 'lxml')
 
             # filtering exactly for class city-box to remove sponsored results
