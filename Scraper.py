@@ -108,7 +108,7 @@ class Scraper:
 
     @staticmethod
     def get_indoor_outdoor(date_type):
-        indoor = ['theater', 'winery', 'museum', 'bowling', 'range']
+        indoor = ['theater', 'winery', 'museum', 'bowling', 'range', 'bar']
         outdoor = ['garden', 'park', 'zoo', 'trail', 'aquarium']
 
         date_type = date_type.lower()
@@ -151,7 +151,7 @@ class Scraper:
         dates = []  # holds image, url, time, title
 
         pages_processed = 1
-        while url is not None and pages_processed < 3:
+        while url is not None and pages_processed < 2:
             print('+++++++++++Getting Page #', pages_processed, '+++++++++++')
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) '
