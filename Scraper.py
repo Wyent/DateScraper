@@ -21,8 +21,8 @@ class Scraper:
 
         # testing
         results = collection.find(search_key)
-        for result in results:
-            print(result)
+        # for result in results:
+            # print(result)
 
     @staticmethod
     def create_headless_firefox_browser():
@@ -122,15 +122,69 @@ class Scraper:
 
     def get_dates_tripbuzz(self, latitude, longitude):
         try:
-            city, state, country = self.get_reverse_geocode(latitude, longitude)
+            city, state, country = self.get_reverse_geocode(latitude, longitude, state_abrev=True)
         except Exception as e:
             raise e
 
         location_string = city + '-' + state
         location_string.replace(" ", "-")
-        html_query = 'https://www.meetup.com/find/?location='
-        html_query2 = '&source=EVENTS'
-        url = html_query + location_string + html_query2
+        domain = 'https://www.tripbuzz.com'
+        query = '/date-ideas/'
+
+        url = domain + query + location_string
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) '
+                          'Version/9.0.2 Safari/601.3.9'}
+
+        r = requests.get(url, headers=headers)
+        soup = BeautifulSoup(r.content, 'lxml')
+
+        # filtering exactly for class city-box to remove sponsored results
+        results = soup.find_all(lambda tag: tag.name == 'div' and tag.get('class') == ['city-box'])
+
+        dates = []  # holds image, url, time, title
+        result_count = 0
+        for item in results:
+            print('-----------Getting Event #', result_count + 1, '--------------')
+
+            # image url extraction
+            image_block = item.find('a', {'class': 'visual'})
+            image_block = str(image_block)
+
+            img_url = domain + image_block[image_block.find("(") + len("("):image_block.find(")")]
+
+            # url extraction
+            url_block = item.find('h3', {'itemprop': 'name'})
+            date_url = domain + url_block.select('a')[0].get('href')
+
+            # time extraction
+            # need to use another api to get business hours
+            time = None
+
+            # title extraction
+            title = url_block.find('a').get_text()
+
+            details = [item.find('div', {'class': 'city-text'}).get_text()]
+
+            dates.append({'image': img_url, 'url': date_url, 'time': time, 'title': title, 'details': details})
+
+            result_count += 1
+
+        date_header = {
+            'country': country,
+            'state': state,
+            'city': city,
+            'source': domain
+        }
+        dates_dict = {
+            'dates': dates
+        }
+        date_collection = date_header | dates_dict
+        # json_date_collection = json.dumps(date_collection)
+
+        self.upsert_mongo('dates', date_header, dates_dict)
+        return date_collection
 
     def get_dates_meetup(self, latitude, longitude):
         import time
@@ -149,7 +203,7 @@ class Scraper:
 
         # get geocode from lat, long
         try:
-            city, state, country = self.get_reverse_geocode(latitude=latitude, longitude=longitude, country_abrev=True)
+            city, state, country = self.get_reverse_geocode(latitude, longitude, country_abrev=True)
         except Exception as e:
             print(e)
             sys.exit()
@@ -161,6 +215,7 @@ class Scraper:
 
         location_string = country + '--' + state + '--' + city
         location_string.replace(" ", "+")
+        domain = 'https://www.meetup.com'
         html_query = 'https://www.meetup.com/find/?location='
         html_query2 = '&source=EVENTS'
         url = html_query + location_string + html_query2
@@ -250,7 +305,7 @@ class Scraper:
             'country': country,
             'state': state,
             'city': city,
-            'source': 'meetup.com'
+            'source': domain
         }
         dates_dict = {
             'dates': dates
