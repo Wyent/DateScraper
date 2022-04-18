@@ -148,63 +148,77 @@ class Scraper:
         query = '/date-ideas/'
 
         url = domain + query + location_string
-
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) '
-                          'Version/9.0.2 Safari/601.3.9'}
-
-        r = requests.get(url, headers=headers)
-        soup = BeautifulSoup(r.content, 'lxml')
-
-        # filtering exactly for class city-box to remove sponsored results
-        results = soup.find_all(lambda tag: tag.name == 'div' and tag.get('class') == ['city-box'])
-
         dates = []  # holds image, url, time, title
-        result_count = 0
-        for item in results:
-            print('-----------Getting Event #', result_count + 1, '--------------')
-            print(item)
 
-            # image url extraction
-            image_block = item.find('a', {'class': 'visual'})
-            image_block = str(image_block)
+        pages_processed = 1
+        while url is not None and pages_processed < 3:
+            print('+++++++++++Getting Page #', pages_processed, '+++++++++++')
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) '
+                              'Version/9.0.2 Safari/601.3.9'}
 
-            img_url = domain + image_block[image_block.find("(") + len("("):image_block.find(")")]
+            r = requests.get(url, headers=headers)
+            soup = BeautifulSoup(r.content, 'lxml')
 
-            # url extraction
-            url_block = item.find('h3', {'itemprop': 'name'})
-            date_url = domain + url_block.select('a')[0].get('href')
+            # filtering exactly for class city-box to remove sponsored results
+            results = soup.find_all(lambda tag: tag.name == 'div' and tag.get('class') == ['city-box'])
 
-            # time extraction
-            # need to use another api to get business hours
-            time = None
+            result_count = 0
+            for item in results:
+                print('-----------Getting Event #', result_count + 1, '--------------')
 
-            # title extraction
-            title = url_block.find('a').get_text()
+                # image url extraction
+                image_block = item.find('a', {'class': 'visual'})
+                image_block = str(image_block)
 
-            # detail extraction
-            details = [item.find('div', {'class': 'city-text'}).get_text()]
+                img_url = domain + image_block[image_block.find("(") + len("("):image_block.find(")")]
 
-            # type extraction
-            date_type = item.find('span', {'class': 'text-blue'}).get_text()
+                # url extraction
+                url_block = item.find('h3', {'itemprop': 'name'})
+                date_url = domain + url_block.select('a')[0].get('href')
 
-            indoor_outdoor = self.get_indoor_outdoor(date_type)
+                # time extraction
+                # need to use another api to get business hours
+                time = None
 
-            # address extraction (vicinity)
-            vicinity = item.find('span', {'class': 'city-address'}).get_text()
+                # title extraction
+                title = url_block.find('a').get_text()
 
-            dates.append({
-                'name': title,
-                'photoRef': img_url,
-                'url': date_url,
-                'time': time,
-                'type': date_type,
-                'indoor_outdoor': indoor_outdoor,
-                'vicinity': vicinity,
-                'details': details
-            })
+                # detail extraction
+                details = [item.find('div', {'class': 'city-text'}).get_text()]
 
-            result_count += 1
+                # type extraction
+                date_type = item.find('span', {'class': 'text-blue'}).get_text()
+
+                indoor_outdoor = self.get_indoor_outdoor(date_type)
+
+                # address extraction (vicinity)
+                vicinity = item.find('span', {'class': 'city-address'}).get_text()
+
+                dates.append({
+                    'name': title,
+                    'photoRef': img_url,
+                    'url': date_url,
+                    'time': time,
+                    'type': date_type,
+                    'indoor_outdoor': indoor_outdoor,
+                    'vicinity': vicinity,
+                    'details': details
+                })
+
+                result_count += 1
+
+            # extracting next page
+            # todo if there is no next page break out of parsing loop
+            page_block = soup.find('div', {'class': 'paginate'})
+            pages = page_block.select('a')
+            next_page = domain + pages[-1].get('href')
+            if url == next_page:
+                url = None
+            else:
+                url = next_page
+
+            pages_processed += 1
 
         date_header = {
             'location': {
