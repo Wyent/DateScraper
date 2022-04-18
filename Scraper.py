@@ -22,7 +22,7 @@ class Scraper:
         # testing
         results = collection.find(search_key)
         # for result in results:
-            # print(result)
+        # print(result)
 
     @staticmethod
     def create_headless_firefox_browser():
@@ -107,6 +107,22 @@ class Scraper:
         return us_state_to_abbrev.get(state)
 
     @staticmethod
+    def get_indoor_outdoor(date_type):
+        indoor = ['theater', 'winery', 'museum', 'bowling', 'range']
+        outdoor = ['garden', 'park', 'zoo', 'trail', 'aquarium']
+
+        date_type = date_type.lower()
+
+        # any(ele.startswith(type) or ele.endswith(type) for ele in indoor)
+
+        if [ele for ele in indoor if (ele in date_type)]:
+            return 'indoor'
+        elif [ele for ele in outdoor if (ele in date_type)]:
+            return 'outdoor'
+        else:
+            return None
+
+    @staticmethod
     def get_reverse_geocode(latitude, longitude, state_abrev=False, country_abrev=False):
         g = geocoder.osm([latitude, longitude], method='reverse')
         print(json.dumps(g.json, indent=4))
@@ -147,6 +163,7 @@ class Scraper:
         result_count = 0
         for item in results:
             print('-----------Getting Event #', result_count + 1, '--------------')
+            print(item)
 
             # image url extraction
             image_block = item.find('a', {'class': 'visual'})
@@ -165,13 +182,35 @@ class Scraper:
             # title extraction
             title = url_block.find('a').get_text()
 
+            # detail extraction
             details = [item.find('div', {'class': 'city-text'}).get_text()]
 
-            dates.append({'image': img_url, 'url': date_url, 'time': time, 'title': title, 'details': details})
+            # type extraction
+            date_type = item.find('span', {'class': 'text-blue'}).get_text()
+
+            indoor_outdoor = self.get_indoor_outdoor(date_type)
+
+            # address extraction (vicinity)
+            vicinity = item.find('span', {'class': 'city-address'}).get_text()
+
+            dates.append({
+                'name': title,
+                'photoRef': img_url,
+                'url': date_url,
+                'time': time,
+                'type': date_type,
+                'indoor_outdoor': indoor_outdoor,
+                'vicinity': vicinity,
+                'details': details
+            })
 
             result_count += 1
 
         date_header = {
+            'location': {
+                'lat': latitude,
+                'lon': longitude
+            },
             'country': country,
             'state': state,
             'city': city,
