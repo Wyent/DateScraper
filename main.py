@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from Scraper import Scraper
+from typing import Optional
 
 app = FastAPI()  # create app instance
 dates = Scraper()
@@ -22,7 +23,7 @@ app.add_middleware(
 
 # define route, use / for landing page
 @app.get("/")  # get operator decorator
-async def read_item(lat: float, lon: float):
+async def read_item(lat: float, lon: float, filter: Optional[str] = None):
     # return python dictionary, auto converted to json
     # return dates.get_dates_meetup(lat, lon)
     city, state, country = dates.get_reverse_geocode(lat, lon, country_abrev=True)
@@ -30,4 +31,4 @@ async def read_item(lat: float, lon: float):
         raise HTTPException(status_code=512,
                             detail='Country is not U.S')
     else:
-        return dates.get_dates_tripbuzz(lat, lon)
+        return dates.get_dates_tripbuzz(lat, lon, filter)
