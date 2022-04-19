@@ -151,13 +151,12 @@ class Scraper:
             'details': details
         }]'''
 
-        date_filter = date_filter.split(",")
         filtered_dates = []
 
         for date in dates:
             date_name = date['name'].lower()
             date_type = date['type'].lower()
-            print('Checking "', date_name, '" and "', date_type, '" against', date_filter)
+            # print('Checking "', date_name, '" and "', date_type, '" against', date_filter)
 
             if [ele for ele in date_filter if (ele in date_name)]:
                 filtered_dates.append(date)
