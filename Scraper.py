@@ -7,6 +7,7 @@ import requests
 import json
 import geocoder
 from fastapi import HTTPException
+import random
 
 
 class Scraper:
@@ -137,6 +138,12 @@ class Scraper:
 
         return city, state, country
 
+    @staticmethod
+    def get_lat_long(address):
+        g = geocoder.osm(address)
+        # print(json.dumps(g.json, indent=4))
+        return g.lat, g.lng
+
     # dates is a list of dictionaries
     @staticmethod
     def filter_dates(dates, date_filter):
@@ -232,6 +239,7 @@ class Scraper:
 
                 # address extraction (vicinity)
                 vicinity = item.find('span', {'class': 'city-address'}).get_text()
+                lat, lon = self.get_lat_long(vicinity)
 
                 dates.append({
                     'name': title,
@@ -241,6 +249,10 @@ class Scraper:
                     'type': date_type,
                     'indoor_outdoor': indoor_outdoor,
                     'vicinity': vicinity,
+                    'location': {
+                        'lat': lat,
+                        'lon': lon
+                    },
                     'details': details
                 })
 
@@ -262,7 +274,6 @@ class Scraper:
 
             # end processing pages
 
-
         date_header = {
             'location': {
                 'lat': latitude,
@@ -277,13 +288,20 @@ class Scraper:
             'dates': dates
         }
         date_collection = date_header | dates_dict
+        # self.get_lat_long(dates[0]['vicinity'])
 
         # upsert entry to mongodb
         # self.upsert_mongo('dates', date_header, dates_dict)
 
         # return filtered data but upload original findings to mongoDB first
+
+        # todo check if random tag is set, random dates first before filtering
+
         if date_filter is not None:
-            date_collection['dates'] = self.filter_dates(dates, date_filter)
+            dates = self.filter_dates(dates, date_filter)
+
+        random.shuffle(dates)
+        date_collection['dates'] = dates
 
         return date_collection
 
