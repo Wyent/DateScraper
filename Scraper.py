@@ -421,7 +421,8 @@ class Scraper:
                 date_type = None
                 indoor_outdoor = None
 
-                lat, lon = self.get_lat_long(vicinity)
+                # lat, lon = self.get_lat_long(vicinity)
+                lat, lon = None, None
                 print('here3')
                 dates.append({
                     'name': title,
