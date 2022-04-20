@@ -334,6 +334,7 @@ class Scraper:
 
         location_string = country + '--' + state + '--' + city
         location_string.replace(" ", "+")
+        # https://www.meetup.com/find/?keywords=date&location=us--tx--Dallas&source=EVENTS
         domain = 'https://www.meetup.com'
         html_query = 'https://www.meetup.com/find/?location='
         html_query2 = '&source=EVENTS'
@@ -397,10 +398,17 @@ class Scraper:
                 group_name = item.select('.text-gray6')[0].get_text()
                 # print(group_name)
 
-                # details
-                details = []
                 date_page = requests.get(date_url, headers=headers)
                 soup = BeautifulSoup(date_page.content, 'lxml')
+
+                # todo fetch vicinity
+                # page_block = soup.find('div', {'class': 'paginate'})
+                print(soup.select('.text-gray-6')[0].get_text())
+                exit()
+
+                vicinity = soup.find('div', {'class': 'text-gray-6'}).get_text()
+                # details
+                details = []
                 for text in soup.select('.break-words'):
                     try:
                         for paragraph in text.select('.mb-4'):
@@ -409,7 +417,28 @@ class Scraper:
                     except Exception as e:
                         print('')
 
-                dates.append({'image': img_url, 'url': date_url, 'time': time, 'title': title, 'details': details})
+                # todo figure out how to determine these from meetup.com
+                date_type = None
+                indoor_outdoor = None
+
+                lat, lon = self.get_lat_long(vicinity)
+                print('here3')
+                dates.append({
+                    'name': title,
+                    'photoRef': img_url,
+                    'url': date_url,
+                    'time': time,
+                    'type': date_type,
+                    'indoor_outdoor': indoor_outdoor,
+                    'vicinity': vicinity,
+                    'location': {
+                        'lat': lat,
+                        'lon': lon
+                    },
+                    'details': details
+                })
+
+                # dates.append({'image': img_url, 'url': date_url, 'time': time, 'title': title, 'details': details})
 
                 result_count += 1
 

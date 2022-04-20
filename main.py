@@ -25,7 +25,7 @@ app.add_middleware(
 @app.get("/")  # get operator decorator
 async def read_item(lat: float, lon: float, filter: Optional[list[str]] = Query(None)):
     # return python dictionary, auto converted to json
-    # return dates.get_dates_meetup(lat, lon)
+
     city, state, country = dates.get_reverse_geocode(lat, lon, country_abrev=True)
     print('FILTER:', filter)
     if country != 'us':
@@ -33,3 +33,4 @@ async def read_item(lat: float, lon: float, filter: Optional[list[str]] = Query(
                             detail='Country is not U.S')
     else:
         return dates.get_dates_tripbuzz(lat, lon, filter)
+        # return dates.get_dates_meetup(lat, lon)
